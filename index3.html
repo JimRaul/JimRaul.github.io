@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Retro Terminal - Matrix Effect</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden; /* Esconde barras de rolagem */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #000;
+    position: relative; /* Para posicionar o terminal em cima do canvas */
+  }
+
+  canvas {
+    position: absolute; /* O canvas fica em uma camada separada */
+    top: 0;
+    left: 0;
+    z-index: 1; /* Garante que o canvas fique por baixo do terminal */
+  }
+
+  /* --- Estilos do Terminal (Mantidos e Refinados) --- */
+  .color-green {
+    color: #00ff41;
+    text-shadow: 0 0 8px #00ff41;
+    border-color: #00ff41 !important;
+  }
+
+  .color-amber {
+    color: #ffb000;
+    text-shadow: 0 0 8px #ffb000;
+    border-color: #ffb000 !important;
+  }
+
+  .terminal-box {
+    position: relative; /* Para ficar acima do canvas */
+    z-index: 2; /* Garante que o terminal fique por cima do canvas */
+    border: 2px solid;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.8); /* Fundo semi-transparente para ver o Matrix */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra para destacar */
+    transition: all 1.5s ease-in-out; /* Transição suave na troca de cor */
+    max-width: fit-content; /* Ajusta a largura da caixa ao conteúdo */
+    margin: 20px; /* Espaçamento para não grudar nas bordas */
+  }
+
+  #typewriter {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.1;
+    margin: 0;
+    white-space: pre;
+    opacity: 0; /* Começa invisível e o JS o torna visível */
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 15px;
+    background-color: currentColor;
+    margin-left: 2px;
+    animation: blink 0.8s step-end infinite;
+    vertical-align: middle;
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+
+<div id="mainBox" class="terminal-box color-amber">
+  <pre id="typewriter"></pre><span class="cursor"></span>
+</div>
+
+<script>
+  // --- Configurações do Efeito Matrix ---
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // Caracteres que cairão (inclui japonês, números e símbolos)
+  const katakana = "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const latin = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const numbers = "0123456789";
+  const symbols = "!@#$%^&*()-=+_[]{}|;:',.<>?/`~";
+
+  const matrixChars = katakana + latin + numbers + symbols;
+
+  const fontSize = 16; // Tamanho da fonte dos caracteres Matrix
+  const columns = canvas.width / fontSize; // Número de colunas de caracteres
+  const drops = []; // Array para controlar a posição Y de cada coluna
+
+  // Inicializa cada coluna com um Y aleatório no topo
+  for(let x = 0; x < columns; x++) {
+      drops[x] = 1;
+  }
+
+  // Loop principal do Matrix
+  function drawMatrix() {
+      // Cria um rastro "desfocado"
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; // Fundo preto semi-transparente
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#0F0"; // Cor verde dos caracteres (pode ser mais escuro)
+      ctx.font = fontSize + "px monospace";
+
+      for(let i = 0; i < drops.length; i++) {
+          // Seleciona um caractere aleatório
+          const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+          
+          // Desenha o caractere
+          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+          // Reinicia a "gota" quando ela sai da tela
+          if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+              drops[i] = 0; // Volta para o topo
+          }
+
+          // Aumenta a posição Y para o próximo frame
+          drops[i]++;
+      }
+  }
+
+  // --- Lógica do Terminal (Mantida) ---
+  const terminalText = `  __________________________________________________
+ |                                                  |
+ |  _    _  _____  _      _       ____              |
+ | | |  | || ____|| |    | |     / __ \\             |
+ | | |__| || |__  | |    | |    | |  | |            |
+ | |  __  ||  __| | |    | |    | |  | |            |
+ | | |  | || |___ | |____| |____| |__| |            |
+ | |_|  |_||_____||______|______|\\____/             |
+ |                                                  |
+ |  __          __  ____   _____  _      _____      |
+ |  \\ \\        / / / __ \\ |  __ \\| |    |  __ \\     |
+ |   \\ \\  /\\  / / | |  | || |__) | |    | |  | |    |
+ |    \\ \\/  \\/ /  | |  | ||  _  /| |    | |  | |    |
+ |     \\  /\\  /   | |__| || | \\ \\| |____| |__| |    |
+ |      \\/  \\/     \\____/ |_|  \\_\\______|_____/     |
+ |                                                  |
+ | ================================================ |
+ |                                                  |
+ |   ____   _____  __  __                           |
+ |  |  _ \\ |  ___||  \\/  |                          |
+ |  | |_) || |__  | \\  / |                          |
+ |  |  _ < |  __| | |\\/| |                          |
+ |  | |_) || |___ | |  | |                          |
+ |  |____/ |_____||_|  |_|                          |
+ |                                                  |
+ |  __      __ _  _   _  ____    ___                |
+ |  \\ \\    / /| || \\ | ||  _ \\  / _ \\               |
+ |   \\ \\  / / | ||  \\| || | | || | | |              |
+ |    \\ \\/ /  | || . \` || |_| || |_| |              |
+ |     \\__/   |_||_|\\_||____/  \\___/                |
+ |                                                  |
+ |                                                  |
+ | > LOADING SYSTEM...                              |
+ | > MATRIX PROTOCOL: ACTIVE                        |
+ | > COLOR ROTATION: ENABLED                        |
+ | > STATUS: ONLINE                                 |
+ |__________________________________________________|`;
+
+  const typewriterContainer = document.getElementById('typewriter');
+  const mainBox = document.getElementById('mainBox');
+  let textIndex = 0;
+
+  function typeWriterEffect() {
+    if (textIndex < terminalText.length) {
+      typewriterContainer.textContent += terminalText.charAt(textIndex);
+      textIndex++;
+      setTimeout(typeWriterEffect, 1); // Velocidade da digitação
+    } else {
+      // Quando a digitação terminar, torna o texto visível
+      typewriterContainer.style.opacity = 1;
+    }
+  }
+
+  function startColorRotation() {
+    setInterval(() => {
+      if (mainBox.classList.contains('color-amber')) {
+        mainBox.classList.replace('color-amber', 'color-green');
+      } else {
+        mainBox.classList.replace('color-green', 'color-amber');
+      }
+      // Ajusta o box-shadow para refletir a nova cor
+      const currentColor = mainBox.classList.contains('color-green') ? '#00ff41' : '#ffb000';
+      mainBox.style.boxShadow = `0 0 20px ${currentColor}`;
+    }, 60000); // 60 segundos
+  }
+
+  // --- Iniciar Efeitos ---
+  window.onload = () => {
+    // Inicia o loop de animação do Matrix
+    setInterval(drawMatrix, 33); // Aproximadamente 30 frames por segundo
+
+    // Inicia a digitação do terminal após um pequeno atraso
+    setTimeout(() => {
+      typeWriterEffect();
+      startColorRotation();
+    }, 1000); // Atraso de 1 segundo para o Matrix começar primeiro
+  };
+
+  // Ajusta o canvas se a janela for redimensionada
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const newColumns = canvas.width / fontSize;
+    // Reinicia as "gotas" para se adequar às novas colunas
+    drops.length = 0;
+    for(let x = 0; x < newColumns; x++) {
+      drops[x] = 1;
+    }
+  });
+</script>
+
+</body>
+</html>
