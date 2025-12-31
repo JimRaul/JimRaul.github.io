@@ -1,1 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Retro Terminal - Color Shift</title>
+<style>
+  body {
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    transition: background-color 1s ease;
+  }
 
+  /* Definição das Cores Clássicas */
+  .color-green {
+    color: #00ff41;
+    text-shadow: 0 0 8px #00ff41;
+    border-color: #00ff41 !important;
+  }
+
+  .color-amber {
+    color: #ffb000;
+    text-shadow: 0 0 8px #ffb000;
+    border-color: #ffb000 !important;
+  }
+
+  .terminal-box {
+    border: 2px solid;
+    padding: 20px;
+    background: rgba(0, 5, 0, 0.9);
+    transition: all 1.5s ease-in-out; /* Transição suave na troca de cor */
+  }
+
+  #typewriter {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.1;
+    margin: 0;
+    white-space: pre;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 15px;
+    background-color: currentColor;
+    margin-left: 2px;
+    animation: blink 0.8s step-end infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="mainBox" class="terminal-box color-amber">
+  <pre id="typewriter"></pre><span class="cursor"></span>
+</div>
+
+<script>
+  const text = `  __________________________________________________
+ |                                                  |
+ |  _    _  _____  _      _       ____              |
+ | | |  | || ____|| |    | |     / __ \\             |
+ | | |__| || |__  | |    | |    | |  | |            |
+ | |  __  ||  __| | |    | |    | |  | |            |
+ | | |  | || |___ | |____| |____| |__| |            |
+ | |_|  |_||_____||______|______|\\____/             |
+ |                                                  |
+ |  __          __  ____   _____  _      _____      |
+ |  \\ \\        / / / __ \\ |  __ \\| |    |  __ \\     |
+ |   \\ \\  /\\  / / | |  | || |__) | |    | |  | |    |
+ |    \\ \\/  \\/ /  | |  | ||  _  /| |    | |  | |    |
+ |     \\  /\\  /   | |__| || | \\ \\| |____| |__| |    |
+ |      \\/  \\/     \\____/ |_|  \\_\\______|_____/     |
+ |                                                  |
+ | ================================================ |
+ |                                                  |
+ |   ____   _____  __  __                           |
+ |  |  _ \\ |  ___||  \\/  |                          |
+ |  | |_) || |__  | \\  / |                          |
+ |  |  _ < |  __| | |\\/| |                          |
+ |  | |_) || |___ | |  | |                          |
+ |  |____/ |_____||_|  |_|                          |
+ |                                                  |
+ |  __      __ _  _   _  ____    ___                |
+ |  \\ \\    / /| || \\ | ||  _ \\  / _ \\               |
+ |   \\ \\  / / | ||  \\| || | | || | | |              |
+ |    \\ \\/ /  | || . \` || |_| || |_| |              |
+ |     \\__/   |_||_|\\_||____/  \\___/                |
+ |                                                  |
+ |                                                  |
+ | > COLOR SYNC: OK                                 |
+ | > ROTATION: 60s                                  |
+ |__________________________________________________|`;
+
+  const container = document.getElementById('typewriter');
+  const mainBox = document.getElementById('mainBox');
+  let i = 0;
+
+  // Função de Digitação
+  function type() {
+    if (i < text.length) {
+      container.textContent += text.charAt(i);
+      i++;
+      setTimeout(type, 1); 
+    }
+  }
+
+  // Função para trocar a cor a cada 60 segundos
+  function startColorRotation() {
+    setInterval(() => {
+      if (mainBox.classList.contains('color-amber')) {
+        mainBox.classList.replace('color-amber', 'color-green');
+      } else {
+        mainBox.classList.replace('color-green', 'color-amber');
+      }
+    }, 60000); // 60000ms = 1 minuto
+  }
+
+  // Iniciar
+  type();
+  startColorRotation();
+</script>
+
+</body>
+</html>
