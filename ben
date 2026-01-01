@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Retro ANSI Quest</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0; /* Verde clássico de monitor fósforo */
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        #game-container {
+            border: 2px solid #0f0;
+            padding: 10px;
+            position: relative;
+            background-color: #050505;
+        }
+
+        #ui {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Efeito de scanline retro */
+        #game-container::after {
+            content: " ";
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        pre {
+            margin: 0;
+            line-height: 1.2;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">MOEDAS: <span id="score">0</span> | VIDAS: <span id="lives">3</span></div>
+    
+    <div id="game-container">
+        <pre id="game-screen"></pre>
+    </div>
+
+    <p>Use [SETAS] para mover/pular | [R] para Reiniciar</p>
+
+    <script>
+        const screen = document.getElementById('game-screen');
+        const scoreEl = document.getElementById('score');
+        
+        // Configurações do Mundo
+        const WIDTH = 40;
+        const HEIGHT = 15;
+        let score = 0;
+
+        // O "Mapa" ( # = parede, . = vazio, * = moeda, T = espinho )
+        const levelMap = [
+            "........................................",
+            "........................................",
+            "....................***.................",
+            "..................#######...............",
+            "..........***...........................",
+            "........#####............****...........",
+            "........................######..........",
+            "....###.......###.......................",
+            "........................................",
+            ".........###.........####......***......",
+            "....***.......##............#######.....",
+            "########################################",
+            "########################################"
+        ];
+
+        let player = {
+            x: 5,
+            y: 10,
+            vx: 0,
+            vy: 0,
+            char: "@",
+            isGrounded: false
+        };
+
+        const keys = {};
+
+        // Input
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+        window.addEventListener('keydown', e => {
+            if(e.code === 'KeyR') resetGame();
+        });
+
+        function resetGame() {
+            player.x = 5;
+            player.y = 10;
+            score = 0;
+            scoreEl.innerText = score;
+        }
+
+        function update() {
+            // Gravidade
+            player.vy += 0.05;
+            
+            // Movimento Horizontal
+            if (keys['ArrowLeft']) player.vx = -0.5;
+            else if (keys['ArrowRight']) player.vx = 0.5;
+            else player.vx *= 0.8; // Atrito
+
+            // Pulo
+            if (keys['ArrowUp'] && player.isGrounded) {
+                player.vy = -0.8;
+                player.isGrounded = false;
+            }
+
+            // Aplicar movimento
+            let nextX = player.x + player.vx;
+            let nextY = player.y + player.vy;
+
+            // Colisão Simples (Tile-based)
+            let checkX = Math.floor(nextX);
+            let checkY = Math.ceil(nextY);
+
+            if (levelMap[checkY] && levelMap[checkY][checkX] === '#') {
+                player.vy = 0;
+                player.isGrounded = true;
+                nextY = checkY - 1;
+            } else {
+                player.isGrounded = false;
+            }
+
+            // Coleta de moedas
+            let coinX = Math.round(nextX);
+            let coinY = Math.round(nextY);
+            if (levelMap[coinY] && levelMap[coinY][coinX] === '*') {
+                let row = levelMap[coinY].split('');
+                row[coinX] = '.';
+                levelMap[coinY] = row.join('');
+                score += 10;
+                scoreEl.innerText = score;
+            }
+
+            // Limites laterais
+            if (nextX < 0) nextX = 0;
+            if (nextX > WIDTH - 1) nextX = WIDTH - 1;
+
+            player.x = nextX;
+            player.y = nextY;
+        }
+
+        function draw() {
+            let display = "";
+            for (let y = 0; y < HEIGHT; y++) {
+                let line = "";
+                for (let x = 0; x < WIDTH; x++) {
+                    if (Math.round(player.x) === x && Math.round(player.y) === y) {
+                        line += player.char;
+                    } else {
+                        line += levelMap[y] ? levelMap[y][x] || " " : " ";
+                    }
+                }
+                display += line + "\n";
+            }
+            screen.textContent = display;
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
